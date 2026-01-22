@@ -1,0 +1,400 @@
+# Code Review Configuration
+# This file configures shift-left behavior, enforcement levels, and team-specific rules
+
+version: "2.0"
+
+# ============================================================================
+# GLOBAL SETTINGS
+# ============================================================================
+global:
+  # Enforcement mode: strict, advisory, hybrid, educational
+  enforcement_mode: hybrid
+
+  # Auto-run @codereview on certain git events
+  auto_review:
+    on_commit_attempt: true
+    on_push_attempt: false
+    on_large_changes: true  # If diff > 500 lines
+
+  # Thresholds for "large changes"
+  thresholds:
+    lines_changed_warning: 500
+    files_changed_warning: 10
+    complexity_warning: 15
+
+# ============================================================================
+# SEVERITY CONFIGURATION
+# ============================================================================
+severity:
+  # What severity levels should BLOCK commits/pushes
+  blocking:
+    - CRITICAL
+    # - HIGH  # Uncomment to also block HIGH severity
+
+  # What severity levels should WARN (show but allow)
+  warning:
+    - HIGH
+    - MEDIUM
+
+  # What severity levels are informational only
+  informational:
+    - LOW
+    - INFO
+
+  # Custom severity overrides per issue type
+  overrides:
+    # Treat all SQL injection as CRITICAL (always block)
+    sql_injection: CRITICAL
+
+    # Treat hardcoded credentials as CRITICAL
+    hardcoded_credentials: CRITICAL
+
+    # Allow some code quality issues with just warnings
+    code_complexity: MEDIUM
+    naming_conventions: LOW
+
+# ============================================================================
+# AGENT CONFIGURATION
+# ============================================================================
+agents:
+  # Enable/disable specific agents
+  security:
+    enabled: true
+    blocking: true  # Block on CRITICAL/HIGH
+
+  owasp:
+    enabled: true
+    blocking: true
+
+  bugs:
+    enabled: true
+    blocking: true  # Block on CRITICAL bugs
+
+  code-quality:
+    enabled: true
+    blocking: false  # Never block, only warn
+
+  performance:
+    enabled: true
+    blocking: false  # Warn but don't block
+
+# ============================================================================
+# CRITICAL CODE PATHS (Required Review)
+# ============================================================================
+critical_paths:
+  # These paths ALWAYS require @codereview and stricter checks
+  - pattern: "**/auth/**"
+    description: "Authentication & Authorization"
+    required_agents:
+      - security
+      - owasp
+    block_without_review: true
+
+  - pattern: "**/payment/**"
+    description: "Payment Processing"
+    required_agents:
+      - security
+      - owasp
+      - bugs
+    block_without_review: true
+
+  - pattern: "**/security/**"
+    description: "Security Module"
+    required_agents:
+      - security
+      - owasp
+    block_without_review: true
+
+  - pattern: "**/admin/**"
+    description: "Admin Functions"
+    required_agents:
+      - security
+      - owasp
+    block_without_review: true
+
+  - pattern: "**/*Controller.{java,kt}"
+    description: "API Controllers"
+    required_agents:
+      - security
+      - bugs
+    block_without_review: false  # Warn but don't block
+
+# ============================================================================
+# TEAM-SPECIFIC RULES
+# ============================================================================
+teams:
+  backend:
+    patterns:
+      - "src/main/java/**"
+      - "src/main/kotlin/**"
+    rules:
+      - enforce_spring_security: true
+      - require_api_validation: true
+      - check_sql_injection: true
+      - performance_priority: high
+    severity_overrides:
+      n_plus_one_query: HIGH  # Backend should avoid N+1
+
+  frontend:
+    patterns:
+      - "src/components/**"
+      - "src/pages/**"
+      - "**/*.tsx"
+      - "**/*.jsx"
+    rules:
+      - check_xss: true
+      - check_prototype_pollution: true
+      - enforce_react_best_practices: true
+      - performance_priority: medium
+    severity_overrides:
+      xss_vulnerability: CRITICAL
+      unnecessary_rerender: MEDIUM
+
+  mobile:
+    patterns:
+      - "mobile/**"
+      - "**/android/**"
+      - "**/ios/**"
+    rules:
+      - check_data_storage: true
+      - check_api_keys: true
+      - enforce_permissions: true
+    severity_overrides:
+      hardcoded_api_key: CRITICAL
+      insecure_storage: HIGH
+
+  devops:
+    patterns:
+      - "infrastructure/**"
+      - "**/*.yml"
+      - "**/*.yaml"
+      - "**/Dockerfile"
+      - "**/*.sh"
+    rules:
+      - check_secrets_in_config: true
+      - check_container_security: true
+      - validate_iac: true
+    severity_overrides:
+      exposed_secrets: CRITICAL
+      insecure_container: HIGH
+
+# ============================================================================
+# GIT HOOK CONFIGURATION
+# ============================================================================
+git_hooks:
+  pre_commit:
+    enabled: true
+
+    # Run @codereview automatically
+    auto_run: true
+
+    # Block commit if critical issues found
+    block_on_critical: true
+
+    # Skip hook with flag: git commit --no-verify
+    allow_bypass: false  # Set to true to allow --no-verify
+
+    # Only check staged files
+    staged_only: true
+
+    # Timeout (seconds)
+    timeout: 60
+
+    # Show summary or full report
+    report_style: summary  # or 'full'
+
+  pre_push:
+    enabled: false  # Can enable if you want pre-push validation
+    auto_run: false
+    block_on_critical: false
+
+  commit_msg:
+    enabled: true
+
+    # Require ticket number in commit message
+    require_ticket: true
+    ticket_pattern: "^(feat|fix|refactor|docs|test|chore)\\([A-Z]+-[0-9]+\\):"
+    # Example: feat(JIRA-123): Add user authentication
+
+    # Block commits without proper format
+    enforce_format: true
+
+# ============================================================================
+# PROACTIVE REMINDERS
+# ============================================================================
+reminders:
+  # Remind to run @codereview when...
+  large_changes:
+    enabled: true
+    threshold: 500  # lines changed
+    message: "⚠️ Large changes detected. Consider running @codereview before committing."
+
+  critical_paths:
+    enabled: true
+    message: "🔒 Critical code path detected. Running @codereview is REQUIRED."
+
+  no_review_in_n_commits:
+    enabled: true
+    commit_count: 5
+    message: "💡 You haven't run @codereview in the last 5 commits. Consider running it now."
+
+  friday_reminder:
+    enabled: true
+    message: "🎯 End of week reminder: Run @codereview before wrapping up!"
+
+# ============================================================================
+# IDE INTEGRATION
+# ============================================================================
+ide:
+  status_indicator:
+    enabled: true
+
+    # Update frequency
+    check_interval: 30  # seconds
+
+    # Status levels
+    levels:
+      green: "No critical issues"
+      yellow: "Some issues found"
+      red: "Critical issues - review required"
+
+    # Show in status bar
+    show_issue_count: true
+    show_severity_icon: true
+
+  inline_hints:
+    enabled: true
+
+    # Show hints for common patterns while typing
+    show_security_hints: true
+    show_performance_hints: true
+
+# ============================================================================
+# METRICS & REPORTING
+# ============================================================================
+metrics:
+  dashboard:
+    enabled: true
+
+    # Track over time
+    track:
+      - issues_found
+      - issues_fixed
+      - review_frequency
+      - severity_distribution
+      - agent_findings
+
+    # Generate reports
+    reports:
+      daily_summary: false
+      weekly_summary: true
+      monthly_trend: true
+
+    # Export format
+    export_format: json  # json, csv, markdown
+    export_path: ".github/metrics/"
+
+  developer_trends:
+    enabled: false  # Enable if you want per-developer tracking
+    anonymous: true  # Anonymize data for privacy
+
+# ============================================================================
+# EXEMPTIONS (Escape Hatches)
+# ============================================================================
+exemptions:
+  # Files/paths that skip certain checks
+  skip_paths:
+    - "**/*.test.{js,ts,java,py}"
+    - "**/*.spec.{js,ts,java,py}"
+    - "**/test/**"
+    - "**/tests/**"
+    - "**/__tests__/**"
+    - "**/generated/**"
+    - "**/vendor/**"
+    - "**/node_modules/**"
+
+  # Skip specific agents for certain patterns
+  skip_agents:
+    - pattern: "**/*.proto"
+      agents: [performance, code-quality]
+      reason: "Protobuf files are generated"
+
+    - pattern: "**/migration/**"
+      agents: [code-quality]
+      reason: "DB migrations prioritize correctness over quality"
+
+  # Allow override comments in code
+  inline_suppression:
+    enabled: true
+    format: "@codereview-ignore[RULE_ID]: reason"
+    # Example: // @codereview-ignore[SQL_INJECTION]: using ORM with parameterized queries
+
+# ============================================================================
+# NOTIFICATIONS
+# ============================================================================
+notifications:
+  slack:
+    enabled: false
+    webhook_url: ""  # Set your Slack webhook URL
+    notify_on:
+      - critical_blocked
+      - weekly_summary
+
+  email:
+    enabled: false
+    recipients: []
+    notify_on:
+      - critical_blocked
+
+  github:
+    enabled: false
+    # Auto-comment on PRs with @codereview results
+    pr_comments: false
+
+# ============================================================================
+# ADVANCED
+# ============================================================================
+advanced:
+  # Parallel agent execution
+  parallel_execution: true
+  max_parallel_agents: 5
+
+  # Caching
+  cache_results: true
+  cache_duration: 3600  # seconds
+
+  # Performance
+  max_file_size: 1048576  # 1MB - skip files larger than this
+  max_diff_size: 524288   # 512KB - skip diffs larger than this
+
+  # Debugging
+  debug_mode: false
+  log_level: info  # debug, info, warn, error
+  log_path: ".github/logs/codereview.log"
+
+# ============================================================================
+# CUSTOM RULES (Extension Point)
+# ============================================================================
+custom_rules:
+  # Add your organization-specific rules here
+  - id: CUSTOM_001
+    name: "Require TODO with ticket number"
+    pattern: "TODO(?!\\s*\\([A-Z]+-[0-9]+\\))"
+    severity: LOW
+    message: "TODO comments must include ticket number: TODO(JIRA-123)"
+    agents: [code-quality]
+
+  - id: CUSTOM_002
+    name: "Disallow System.out.println in production"
+    pattern: "System\\.out\\.println"
+    file_pattern: "src/main/**/*.java"
+    severity: MEDIUM
+    message: "Use logger instead of System.out.println in production code"
+    agents: [code-quality]
+
+  - id: CUSTOM_003
+    name: "Require error logging in catch blocks"
+    pattern: "catch\\s*\\([^)]+\\)\\s*\\{\\s*\\}"
+    severity: HIGH
+    message: "Empty catch blocks should log errors"
+    agents: [bugs]
