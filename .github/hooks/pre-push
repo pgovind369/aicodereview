@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # GitHub Copilot Code Review - Pre-Push Hook
-# Runs @codereview on all changes before pushing to remote
+# Runs @reviewcode on all changes before pushing to remote
 # Blocks push if CRITICAL issues found
 #
 
@@ -112,12 +112,12 @@ else
     REQUIRE_REVIEW=false
 fi
 
-# Check if @codereview was run recently
+# Check if @reviewcode was run recently
 echo -e "${BLUE}🔍 Checking for recent code reviews...${NC}"
-LAST_REVIEW_COMMIT=$(git log --grep="@codereview\|codereview" --format="%H" -1 || echo "")
+LAST_REVIEW_COMMIT=$(git log --grep="@reviewcode\|reviewcode\|@codereview\|codereview" --format="%H" -1 || echo "")
 
 if [ -z "$LAST_REVIEW_COMMIT" ]; then
-    echo -e "${YELLOW}⚠️  No @codereview found in commit history${NC}"
+    echo -e "${YELLOW}⚠️  No @reviewcode found in commit history${NC}"
     NEEDS_REVIEW=true
 else
     # Check if review is recent (within the commits being pushed)
@@ -155,7 +155,7 @@ if [ "$REQUIRE_REVIEW" = true ] && [ "$NEEDS_REVIEW" = true ]; then
     echo -e "${YELLOW}🔒 Security Policy: Critical paths require code review${NC}"
     echo ""
     echo -e "${BLUE}To proceed:${NC}"
-    echo "  1. Run @codereview in GitHub Copilot chat"
+    echo "  1. Run @reviewcode in GitHub Copilot chat"
     echo "  2. Review and fix any CRITICAL/HIGH issues"
     echo "  3. Commit the fixes"
     echo "  4. Try pushing again"
@@ -166,9 +166,9 @@ if [ "$REQUIRE_REVIEW" = true ] && [ "$NEEDS_REVIEW" = true ]; then
     SHOULD_BLOCK=true
 fi
 
-# Run @codereview if auto_run enabled or critical paths detected
+# Run @reviewcode if auto_run enabled or critical paths detected
 if [ "$AUTO_RUN" = "true" ] || [ "$REQUIRE_REVIEW" = true ]; then
-    echo -e "${BLUE}🤖 Running @codereview automatically...${NC}"
+    echo -e "${BLUE}🤖 Running @reviewcode automatically...${NC}"
     echo ""
 
     # Check if GitHub Copilot CLI is available
@@ -182,7 +182,7 @@ if [ "$AUTO_RUN" = "true" ] || [ "$REQUIRE_REVIEW" = true ]; then
             exit 1
         fi
 
-        echo -e "${YELLOW}⚠️  Please run @codereview manually in your IDE${NC}"
+        echo -e "${YELLOW}⚠️  Please run @reviewcode manually in your IDE${NC}"
         echo -e "${YELLOW}   Allowing push, but review is strongly recommended${NC}"
         exit 0
     fi
@@ -215,7 +215,7 @@ if [ "$AUTO_RUN" = "true" ] || [ "$REQUIRE_REVIEW" = true ]; then
     echo ""
 
     # In real implementation, this would call:
-    # REVIEW_RESULT=$(gh copilot suggest "@codereview" --input "$TEMP_DIFF")
+    # REVIEW_RESULT=$(gh copilot suggest "@reviewcode" --input "$TEMP_DIFF")
 
     # For now, we simulate checking for indicators that review should block
     # Check git log for review results from commit messages
@@ -244,7 +244,7 @@ if [ "$AUTO_RUN" = "true" ] || [ "$REQUIRE_REVIEW" = true ]; then
         echo ""
         echo -e "${YELLOW}Action Required:${NC}"
         echo "  1. Review the security issues listed above"
-        echo "  2. Run @codereview in GitHub Copilot for detailed analysis"
+        echo "  2. Run @reviewcode in GitHub Copilot for detailed analysis"
         echo "  3. Fix all CRITICAL issues"
         echo "  4. Commit fixes and push again"
         echo ""

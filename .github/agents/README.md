@@ -65,7 +65,7 @@
 
 1. **Make code changes** (don't commit yet)
 2. **Open GitHub Copilot chat**
-3. **Type**: `@codereview`
+3. **Type**: `@reviewcode`
 4. **Press Enter** and wait for the comprehensive report
 
 That's it! The system automatically:
@@ -80,7 +80,7 @@ That's it! The system automatically:
 .github/
 └── agents/
     ├── README.md                # This file
-    ├── codereview.agent.md     # Main orchestrator
+    ├── reviewcode.agent.md     # Main orchestrator
     ├── security.agent.md       # Security vulnerabilities
     ├── owasp.agent.md          # OWASP Top 10
     ├── bugs.agent.md           # Bug detection
@@ -90,7 +90,7 @@ That's it! The system automatically:
 
 ## 🔍 Review Agents
 
-### @codereview (Orchestrator)
+### @reviewcode (Orchestrator)
 Coordinates all agents, detects git changes, generates unified reports
 
 ### @security
@@ -133,25 +133,25 @@ Coordinates all agents, detects git changes, generates unified reports
 
 ### Basic Review
 ```
-@codereview
+@reviewcode
 ```
 Reviews all uncommitted changes
 
 ### Focused Review
 ```
-@codereview for the authentication changes
+@reviewcode for the authentication changes
 ```
 Provide context for more targeted analysis
 
 ### After Fixing Issues
 ```
-@codereview - did I fix the critical issues?
+@reviewcode - did I fix the critical issues?
 ```
 Verify your fixes resolved the problems
 
 ### Specific File
 ```
-@codereview only UserService.java
+@reviewcode only UserService.java
 ```
 Review a specific file (if supported by Copilot)
 
@@ -207,10 +207,11 @@ stmt.setLong(1, userId);
 
 ## ✅ Best Practices
 
-### When to Run @codereview
+### When to Run @reviewcode
 
 **✅ DO run**:
 - Before committing changes
+- Right before opening or updating a merge request (pre-merge check)
 - Before creating pull requests
 - After implementing new features
 - After refactoring code
@@ -227,7 +228,7 @@ stmt.setLong(1, userId);
 2. **Consider context**: Not all suggestions apply to every situation
 3. **Learn from findings**: Use reports as learning opportunities
 4. **Balance trade-offs**: Some optimizations may reduce clarity
-5. **Iterate**: Apply fixes, run @codereview again to verify
+5. **Iterate**: Apply fixes, run @reviewcode again to verify
 
 ### Applying Fixes
 
@@ -237,7 +238,7 @@ stmt.setLong(1, userId);
 2. Copy the suggested fix
 3. Apply to your code
 4. Test the change
-5. Run @codereview again
+5. Run @reviewcode again
 ```
 
 **Batch Fixing**:
@@ -246,7 +247,7 @@ stmt.setLong(1, userId);
 2. Group similar issues
 3. Fix by category (security first)
 4. Test incrementally
-5. Verify with @codereview
+5. Verify with @reviewcode
 ```
 
 ## 🧪 Testing the System
@@ -263,7 +264,7 @@ public class TestUser {
 }
 ```
 
-Run `@codereview` → Should detect **CRITICAL SQL Injection**
+Run `@reviewcode` → Should detect **CRITICAL SQL Injection**
 
 ### Test 2: Create a Performance Issue
 
@@ -275,7 +276,7 @@ for user in users:
     print(len(orders))
 ```
 
-Run `@codereview` → Should detect **HIGH N+1 Query Problem**
+Run `@reviewcode` → Should detect **HIGH N+1 Query Problem**
 
 ### Test 3: Create Code Quality Issue
 
@@ -294,7 +295,7 @@ function processOrder(order) {
 }
 ```
 
-Run `@codereview` → Should detect **MEDIUM Cyclomatic Complexity**
+Run `@reviewcode` → Should detect **MEDIUM Cyclomatic Complexity**
 
 ## ⚙️ Configuration
 
@@ -355,7 +356,7 @@ git status  # Verify uncommitted changes
 ```bash
 # Verify structure
 ls -la .github/agents/
-# Should see: codereview.agent.md, security.agent.md, etc.
+# Should see: reviewcode.agent.md, security.agent.md, etc.
 ```
 
 ### Issue: "Review is too slow"
@@ -421,7 +422,7 @@ jobs:
 #!/bin/sh
 # .git/hooks/pre-commit
 echo "Running code review..."
-gh copilot chat -p "@codereview"
+gh copilot chat -p "@reviewcode"
 read -p "Issues found. Continue commit? (y/n) " -n 1 -r
 echo
 if [[ ! $REPLY =~ ^[Yy]$ ]]; then
@@ -446,7 +447,7 @@ target: vscode
 [Your accessibility checking instructions...]
 ```
 
-Then reference in codereview.agent.md:
+Then reference in reviewcode.agent.md:
 ```yaml
 handoffs: ['security', 'owasp', 'bugs', 'code-quality', 'performance', 'accessibility']
 ```
@@ -474,7 +475,7 @@ Improve the system:
 - ✅ Proper `.github/agents/` directory structure
 - ✅ YAML frontmatter for all agents
 - ✅ Correct `.agent.md` file extensions
-- ✅ `@codereview` invocation (not `/codereview`)
+- ✅ `@reviewcode` invocation (not `/reviewcode`)
 - ✅ Parallel agent execution architecture
 - ✅ Comprehensive testing instructions
 - ✅ Production-ready configuration
@@ -497,6 +498,6 @@ This code review system is provided as-is for use with GitHub Copilot.
 
 ---
 
-**🚀 Ready to use!** Just type `@codereview` in GitHub Copilot chat and watch it work!
+**🚀 Ready to use!** Just type `@reviewcode` in GitHub Copilot chat and watch it work!
 
 **Remember**: The best code is secure, bug-free, maintainable, and performant. This system helps you achieve all four! 🎯
