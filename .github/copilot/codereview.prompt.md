@@ -1,10 +1,10 @@
 # Code Review Orchestrator
 
 ## Command
-`/codereview`
+`/reviewcode`
 
 ## Description
-Comprehensive automated code review that analyzes git changes and runs parallel review agents for security, OWASP vulnerabilities, bugs, code quality, and performance issues.
+Comprehensive automated code review that analyzes git changes and runs parallel review agents for security, OWASP vulnerabilities, bugs, code quality, and performance issues. Intended as a pre-merge check before opening or updating a merge request.
 
 ## Behavior
 This command automatically:
@@ -20,12 +20,13 @@ This command automatically:
 
 ## Instructions
 
-When the user invokes `/codereview`, follow this orchestration workflow:
+When the user invokes `/reviewcode`, follow this orchestration workflow:
 
 ### Phase 1: Git Change Detection
 1. Run `git status --short` to identify modified (M), added (A), renamed (R), and new (??) files
-2. For each identified file, run `git diff HEAD <file>` to get the diff (for new files, use entire content)
-3. Filter to only include source code files (skip .md, .json, .txt, etc. unless they contain security configs)
+2. For each identified file, capture both unstaged and staged diffs (`git diff <file>` and `git diff --cached <file>`) and merge them for a full pre-merge view
+3. For new files, include the entire content since no previous version exists
+4. Filter to only include source code files (skip .md, .json, .txt, etc. unless they contain security configs)
 4. Create a context object with: filename, diff content, file extension, change type
 
 ### Phase 2: Parallel Agent Invocation

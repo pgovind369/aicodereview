@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # GitHub Copilot Code Review - Pre-Commit Hook
-# Automatically runs @codereview before commits
+# Automatically runs  before commits
 # Blocks commits with CRITICAL issues (configurable)
 #
 
@@ -74,21 +74,21 @@ if [ "$LINES_CHANGED" -gt "$LINE_THRESHOLD" ]; then
     echo -e "${YELLOW}⚠️  Large change detected: $LINES_CHANGED lines changed (threshold: $LINE_THRESHOLD)${NC}"
 fi
 
-# Function to run codereview via GitHub Copilot CLI
-run_codereview() {
-    echo -e "${BLUE}🤖 Running @codereview via GitHub Copilot...${NC}"
+# Function to run reviewcode via GitHub Copilot CLI
+run_reviewcode() {
+    echo -e "${BLUE}🤖 Running @reviewcode via GitHub Copilot...${NC}"
 
     # Check if GitHub Copilot CLI is available
     if command -v gh &> /dev/null && gh copilot --version &> /dev/null; then
         # Use GitHub Copilot CLI
-        REVIEW_OUTPUT=$(gh copilot suggest "@codereview" 2>&1 || true)
+        REVIEW_OUTPUT=$(gh copilot suggest "@reviewcode" 2>&1 || true)
     else
-        echo -e "${YELLOW}⚠️  GitHub Copilot CLI not found. Please run @codereview manually in your IDE.${NC}"
+        echo -e "${YELLOW}⚠️  GitHub Copilot CLI not found. Please run @reviewcode manually in your IDE.${NC}"
         echo -e "${YELLOW}   Install: https://docs.github.com/en/copilot/github-copilot-in-the-cli${NC}"
 
         if [ "$IN_CRITICAL_PATH" = true ]; then
             echo -e "${RED}❌ BLOCKED: Critical path requires code review.${NC}"
-            echo -e "${RED}   Run @codereview in GitHub Copilot chat before committing.${NC}"
+            echo -e "${RED}   Run @reviewcode in GitHub Copilot chat before committing.${NC}"
             exit 1
         fi
 
@@ -109,7 +109,7 @@ run_codereview() {
         echo -e "${RED}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
         echo -e "${YELLOW}📋 Action Required:${NC}"
         echo -e "   1. Fix the critical issue(s) listed above"
-        echo -e "   2. Run ${GREEN}@codereview${NC} again to verify fixes"
+        echo -e "   2. Run ${GREEN}@reviewcode${NC} again to verify fixes"
         echo -e "   3. Stage your fixes: ${GREEN}git add .${NC}"
         echo -e "   4. Try committing again: ${GREEN}git commit${NC}"
         echo ""
@@ -148,25 +148,25 @@ check_commit_msg() {
 
 # Main execution
 if [ "$AUTO_RUN" = "true" ] || [ "$IN_CRITICAL_PATH" = true ]; then
-    run_codereview
+    run_reviewcode
 elif [ "$IN_CRITICAL_PATH" = true ]; then
     echo -e "${RED}🔒 Critical path detected. Code review is REQUIRED.${NC}"
-    run_codereview
+    run_reviewcode
 else
     # Check if large changes
     if [ "$LINES_CHANGED" -gt "$LINE_THRESHOLD" ]; then
         echo -e "${YELLOW}⚠️  Large changes detected. Running code review...${NC}"
-        run_codereview
+        run_reviewcode
     else
-        echo -e "${BLUE}💡 Tip: Run @codereview in GitHub Copilot chat for comprehensive analysis${NC}"
+        echo -e "${BLUE}💡 Tip: Run @reviewcode in GitHub Copilot chat for comprehensive analysis${NC}"
         echo -e "${GREEN}✅ Pre-commit checks passed (auto-review disabled for small changes)${NC}"
     fi
 fi
 
 # Count commits since last review (optional reminder)
-COMMITS_SINCE_REVIEW=$(git log --oneline | grep -c "codereview" || echo "999")
+COMMITS_SINCE_REVIEW=$(git log --oneline | grep -E -c "reviewcode|codereview" || echo "999")
 if [ "$COMMITS_SINCE_REVIEW" -gt 5 ]; then
-    echo -e "${YELLOW}💡 Reminder: You haven't run @codereview in the last 5 commits${NC}"
+    echo -e "${YELLOW}💡 Reminder: You haven't run @reviewcode in the last 5 commits${NC}"
 fi
 
 echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"

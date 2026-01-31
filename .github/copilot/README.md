@@ -4,7 +4,7 @@ An automated code review system for GitHub Copilot that analyzes git changes acr
 
 ## Overview
 
-This system provides a comprehensive `/codereview` command that you can invoke in GitHub Copilot chat (VSCode, JetBrains IDEs, or other supported IDEs) to automatically review your code changes.
+This system provides a comprehensive `/reviewcode` command that you can invoke in GitHub Copilot chat (VSCode, JetBrains IDEs, or other supported IDEs) to automatically review your code changes before opening a merge request.
 
 ### Features
 
@@ -65,7 +65,7 @@ This system provides a comprehensive `/codereview` command that you can invoke i
 1. Make changes to your code
 2. **Do NOT commit yet** (the review analyzes uncommitted changes)
 3. Open GitHub Copilot chat in your IDE
-4. Type: `/codereview`
+4. Type: `/reviewcode`
 5. Press Enter
 
 The system will automatically:
@@ -81,7 +81,7 @@ The system will automatically:
 vim src/main/java/com/example/UserService.java
 
 # Open Copilot chat and run review
-# Type in chat: /codereview
+# Type in chat: /reviewcode
 
 # Review the findings
 # Apply suggested fixes
@@ -157,7 +157,7 @@ stmt.setLong(1, userId);
 While the default behavior reviews all changed files, you can guide Copilot to focus on specific files:
 
 ```
-/codereview for src/services/PaymentService.java
+/reviewcode for src/services/PaymentService.java
 ```
 
 ### Understanding Severity Levels
@@ -174,7 +174,7 @@ The review provides code snippets for fixes. You can:
 
 1. **Manual Application**: Copy the suggested code and apply it manually
 2. **IDE Quick Fixes**: Some IDEs may offer to apply fixes directly (if supported)
-3. **Iterative Review**: Apply fixes, then run `/codereview` again to verify
+3. **Iterative Review**: Apply fixes, then run `/reviewcode` again to verify
 
 ## Configuration
 
@@ -191,7 +191,7 @@ You can modify agent behavior by editing the respective agent files in `.github/
 To exclude certain files from review, you can mention it in your prompt:
 
 ```
-/codereview but skip test files
+/reviewcode but skip test files
 ```
 
 Or edit `codereview.prompt.md` to add file type filters.
@@ -202,6 +202,7 @@ Or edit `codereview.prompt.md` to add file type filters.
 
 ✅ **DO** run code review:
 - Before committing changes
+- Right before opening or updating a merge request (pre-merge check)
 - After implementing new features
 - Before creating pull requests
 - After refactoring code
